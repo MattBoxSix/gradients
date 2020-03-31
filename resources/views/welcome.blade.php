@@ -8,15 +8,17 @@
         <script src="{{ asset('js/app.js') }}" defer></script>
 
         <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Baloo+2&display=swap&subset=devanagari,latin-ext,vietnamese" rel="stylesheet">
 
         <!-- Styles -->
         <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
     </head>
     <body>
-        <div id="app">            
-            <gradient-container-component />    
+        <div id="app"> 
+            <v-app>
+                <gradient-container-component />
+            </v-app>           
         </div>
     </body>
 </html>
