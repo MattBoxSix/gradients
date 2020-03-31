@@ -2003,39 +2003,7 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       dialog: false,
-      cards: [{
-        name: 'Name of thing',
-        color1: '#ff0000',
-        color2: '#ffff00'
-      }, {
-        name: 'Name of thing',
-        color1: '#b3b3ff',
-        color2: '#0000e6'
-      }, {
-        name: 'Name of thing',
-        color1: '#ff0000',
-        color2: '#ffff00'
-      }, {
-        name: 'Name of thing',
-        color1: '#ff0000',
-        color2: '#ffff00'
-      }, {
-        name: 'Name of thing',
-        color1: '#0d0d0d',
-        color2: '#999999'
-      }, {
-        name: 'Name of thing',
-        color1: '#ff0000',
-        color2: '#ffff00'
-      }, {
-        name: 'Name of thing',
-        color1: '#ff0000',
-        color2: '#ffff00'
-      }, {
-        name: 'Name of thing',
-        color1: 'green',
-        color2: 'red'
-      }],
+      cards: [],
       colors: ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'black', 'grey', 'pink']
     };
   },
@@ -2047,9 +2015,27 @@ __webpack_require__.r(__webpack_exports__);
       };
     }
   },
+  created: function created() {
+    this.loadGradients();
+  },
   methods: {
     close: function close() {
       this.dialog = false;
+    },
+    loadGradients: function loadGradients() {
+      var _this = this;
+
+      if (axios == null) {
+        return;
+      }
+
+      axios.get('/api/gradients').then(function (res) {
+        if (res.status === 200) {
+          _this.cards = res.data.gradients.data;
+        }
+      })["catch"](function (err) {
+        console.log(err);
+      });
     }
   }
 });
