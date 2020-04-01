@@ -5,33 +5,56 @@
                 <v-card class="cardColor d-inline-block mx-auto">
                     <v-card-text>
                         <v-row>
-                            <v-card
-                                v-for="card in cards"
-                                :key="card.id"
-                                class="col-6 col-lg-3 pa-0 card"
-                                flat
-                            >
-                                <v-card-text
-                                    style="height: 150px"
-                                    :style="{
-                                        'background-image': backgroundImage(
-                                            card.color1,
-                                            card.color2,
-                                        ),
-                                    }"
+                            <template>
+                                <v-card
+                                    v-for="card in orderedCards"
+                                    :key="card.id"
+                                    class="col-6 col-lg-3 pa-0 card"
                                     flat
-                                ></v-card-text>
-                                <div class="px-2 pt-3">
-                                    <span>
-                                        {{ card.name }}
-                                    </span>
-                                    <br />
-                                    <span>
-                                        {{ card.color1 }} &#8594;
-                                        {{ card.color2 }}
-                                    </span>
-                                </div>
-                            </v-card>
+                                >
+                                    <v-card-text
+                                        style="height: 150px"
+                                        :style="{
+                                            'background-image': backgroundImage(
+                                                card.color1,
+                                                card.color2,
+                                            ),
+                                        }"
+                                        flat
+                                    ></v-card-text>
+                                    <v-row>
+                                        <v-col cols="8">
+                                            <div class="px-2 pt-2">
+                                                <span>
+                                                    {{ card.name }}
+                                                </span>
+                                                <br />
+                                                <span>
+                                                    {{ card.color1 }} &#8594;
+                                                    {{ card.color2 }}
+                                                </span>
+                                            </div>
+                                        </v-col>
+                                        <v-col cols="4">
+                                            <div class="pt-3">
+                                                <v-icon
+                                                    small
+                                                    class="mr-2"
+                                                    @click="editItem(card)"
+                                                >
+                                                    mdi-square-edit-outline
+                                                </v-icon>
+                                                <v-icon
+                                                    small
+                                                    @click="deleteItem(card)"
+                                                >
+                                                    mdi-delete
+                                                </v-icon>
+                                            </div>
+                                        </v-col>
+                                    </v-row>
+                                </v-card>
+                            </template>
                         </v-row>
                     </v-card-text>
                 </v-card>                
@@ -114,9 +137,17 @@ export default {
                 'linear-gradient(to top right, ' + color1 + ',' + color2 + ')';
             return bgImage;
         },
+        orderedCards: function() {
+            return _.orderBy(this.cards, 'color1');
+        },
     },
     created() {
         this.loadGradients();
+    },
+    watch: {
+        dialog(val) {
+            val || this.close();
+        },
     },
     methods: {
         close() {
@@ -130,12 +161,39 @@ export default {
                 .get('/api/gradients')
                 .then(res => {
                     if (res.status === 200) {
-                        this.cards = res.data.gradients.data;
+                        this.cards = res.data.gradients;
                     }
                 })
                 .catch(err => {
                     console.log(err);
                 });
+        },
+        saveToServer() {
+            let bodyFormData = new FormData();
+            bodyFormData.set('name', this.cards.name);
+            bodyFormData.set('color1', this.cards.color1);
+            bodyFormData.set('color2', this.cards.color2);
+            axios
+                .post('/api/gradients', bodyFormData)
+                .then(response => {
+                    this.cards = res.data.gradients.data;
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+        },
+        deleteItem(card) {
+            const index = this.cards.indexOf(card);
+            if (confirm('Are you sure you want to delete this item?')) {
+                axios
+                    .delete('/api/gradients/' + this.cards[index].id)
+                    .then(response => {
+                        this.cards.splice(index, 1);
+                    })
+                    .catch(error => {
+                        console.log('Deleting error');
+                    });
+            }
         },
     },
 };

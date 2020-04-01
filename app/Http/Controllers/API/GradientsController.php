@@ -16,7 +16,7 @@ class GradientsController extends Controller
      */
     public function index()
     {
-        $gradients = Gradients::paginate(8);
+        $gradients = Gradients::all();
         return response()->json([            
             'gradients' => $gradients,
         ], 200);        
@@ -30,7 +30,13 @@ class GradientsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+       $gradient = new Gradients();
+       $gradient->name = $request->name;
+       $gradient->color1 = $request->color1;
+       $gradient->color2 = $request->color2;
+       $gradient->save();
+       return $gradient;
+
     }
 
     /**
@@ -64,6 +70,7 @@ class GradientsController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Gradients::destroy($id);
+        return response()->json('Image Deleted');
     }
 }

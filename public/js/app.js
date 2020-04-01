@@ -1999,6 +1999,29 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2013,10 +2036,18 @@ __webpack_require__.r(__webpack_exports__);
         var bgImage = 'linear-gradient(to top right, ' + color1 + ',' + color2 + ')';
         return bgImage;
       };
+    },
+    orderedCards: function orderedCards() {
+      return _.orderBy(this.cards, 'color1');
     }
   },
   created: function created() {
     this.loadGradients();
+  },
+  watch: {
+    dialog: function dialog(val) {
+      val || this.close();
+    }
   },
   methods: {
     close: function close() {
@@ -2031,11 +2062,37 @@ __webpack_require__.r(__webpack_exports__);
 
       axios.get('/api/gradients').then(function (res) {
         if (res.status === 200) {
-          _this.cards = res.data.gradients.data;
+          _this.cards = res.data.gradients;
         }
       })["catch"](function (err) {
         console.log(err);
       });
+    },
+    saveToServer: function saveToServer() {
+      var _this2 = this;
+
+      var bodyFormData = new FormData();
+      bodyFormData.set('name', this.cards.name);
+      bodyFormData.set('color1', this.cards.color1);
+      bodyFormData.set('color2', this.cards.color2);
+      axios.post('/api/gradients', bodyFormData).then(function (response) {
+        _this2.cards = res.data.gradients.data;
+      })["catch"](function (error) {
+        console.log(error);
+      });
+    },
+    deleteItem: function deleteItem(item) {
+      var _this3 = this;
+
+      var index = this.cards.indexOf(item);
+
+      if (confirm('Are you sure you want to delete this item?')) {
+        axios["delete"]('/api/gradients/' + this.cards[index].id).then(function (response) {
+          _this3.cards.splice(index, 1);
+        })["catch"](function (error) {
+          console.log('Deleting error');
+        });
+      }
     }
   }
 });
@@ -38077,52 +38134,106 @@ var render = function() {
                     [
                       _c(
                         "v-row",
-                        _vm._l(_vm.cards, function(card) {
-                          return _c(
-                            "v-card",
-                            {
-                              key: card.id,
-                              staticClass: "col-6 col-lg-3 pa-0 card",
-                              attrs: { flat: "" }
-                            },
-                            [
-                              _c("v-card-text", {
-                                staticStyle: { height: "150px" },
-                                style: {
-                                  "background-image": _vm.backgroundImage(
-                                    card.color1,
-                                    card.color2
-                                  )
-                                },
+                        [
+                          _vm._l(_vm.orderedCards, function(card) {
+                            return _c(
+                              "v-card",
+                              {
+                                key: card.id,
+                                staticClass: "col-6 col-lg-3 pa-0 card",
                                 attrs: { flat: "" }
-                              }),
-                              _vm._v(" "),
-                              _c("div", { staticClass: "px-2 pt-3" }, [
-                                _c("span", [
-                                  _vm._v(
-                                    "\n                                    " +
-                                      _vm._s(card.name) +
-                                      "\n                                "
-                                  )
-                                ]),
+                              },
+                              [
+                                _c("v-card-text", {
+                                  staticStyle: { height: "150px" },
+                                  style: {
+                                    "background-image": _vm.backgroundImage(
+                                      card.color1,
+                                      card.color2
+                                    )
+                                  },
+                                  attrs: { flat: "" }
+                                }),
                                 _vm._v(" "),
-                                _c("br"),
-                                _vm._v(" "),
-                                _c("span", [
-                                  _vm._v(
-                                    "\n                                    " +
-                                      _vm._s(card.color1) +
-                                      " →\n                                    " +
-                                      _vm._s(card.color2) +
-                                      "\n                                "
-                                  )
-                                ])
-                              ])
-                            ],
-                            1
-                          )
-                        }),
-                        1
+                                _c(
+                                  "v-row",
+                                  [
+                                    _c("v-col", { attrs: { cols: "8" } }, [
+                                      _c("div", { staticClass: "px-2 pt-2" }, [
+                                        _c("span", [
+                                          _vm._v(
+                                            "\n                                                " +
+                                              _vm._s(card.name) +
+                                              "\n                                            "
+                                          )
+                                        ]),
+                                        _vm._v(" "),
+                                        _c("br"),
+                                        _vm._v(" "),
+                                        _c("span", [
+                                          _vm._v(
+                                            "\n                                                " +
+                                              _vm._s(card.color1) +
+                                              " →\n                                                " +
+                                              _vm._s(card.color2) +
+                                              "\n                                            "
+                                          )
+                                        ])
+                                      ])
+                                    ]),
+                                    _vm._v(" "),
+                                    _c("v-col", { attrs: { cols: "4" } }, [
+                                      _c(
+                                        "div",
+                                        { staticClass: "pt-3" },
+                                        [
+                                          _c(
+                                            "v-icon",
+                                            {
+                                              staticClass: "mr-2",
+                                              attrs: { small: "" },
+                                              on: {
+                                                click: function($event) {
+                                                  return _vm.editItem(card)
+                                                }
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                                mdi-square-edit-outline\n                                            "
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-icon",
+                                            {
+                                              attrs: { small: "" },
+                                              on: {
+                                                click: function($event) {
+                                                  return _vm.deleteItem(card)
+                                                }
+                                              }
+                                            },
+                                            [
+                                              _vm._v(
+                                                "\n                                                mdi-delete\n                                            "
+                                              )
+                                            ]
+                                          )
+                                        ],
+                                        1
+                                      )
+                                    ])
+                                  ],
+                                  1
+                                )
+                              ],
+                              1
+                            )
+                          })
+                        ],
+                        2
                       )
                     ],
                     1
