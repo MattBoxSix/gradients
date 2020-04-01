@@ -2022,10 +2022,26 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       dialog: false,
+      card: {
+        id: '-1',
+        name: 'Test Name',
+        color1: '',
+        color2: ''
+      },
+      activeCardIndex: '-1',
       cards: [],
       colors: ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'black', 'grey', 'pink']
     };
@@ -2050,6 +2066,22 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   methods: {
+    showNewDialogue: function showNewDialogue() {
+      this.activeCardIndex = -1;
+      this.card.id = -1;
+      this.card.name = '';
+      this.card.color1 = '';
+      this.card.color2 = '';
+      this.dialog = true;
+    },
+    showEditDialogue: function showEditDialogue(editedCard) {
+      this.activeCardIndex = this.cards.indexOf(editedCard);
+      this.card.id = editedCard.id;
+      this.card.name = editedCard.name;
+      this.card.color1 = editedCard.color1;
+      this.card.color2 = editedCard.color2;
+      this.dialog = true;
+    },
     close: function close() {
       this.dialog = false;
     },
@@ -2072,19 +2104,34 @@ __webpack_require__.r(__webpack_exports__);
       var _this2 = this;
 
       var bodyFormData = new FormData();
-      bodyFormData.set('name', this.cards.name);
-      bodyFormData.set('color1', this.cards.color1);
-      bodyFormData.set('color2', this.cards.color2);
-      axios.post('/api/gradients', bodyFormData).then(function (response) {
-        _this2.cards = res.data.gradients.data;
-      })["catch"](function (error) {
-        console.log(error);
-      });
+      bodyFormData.set('name', this.card.name);
+      bodyFormData.set('color1', this.card.color1);
+      bodyFormData.set('color2', this.card.color2);
+      var self = this; // add new card
+
+      if (this.card.id === -1) {
+        axios.post('/api/gradients', bodyFormData).then(function (response) {
+          _this2.cards = _this2.cards.concat(response.data);
+          self.close();
+        })["catch"](function (error) {
+          console.log(error);
+        });
+      } else {
+        // update card
+        bodyFormData.append('_method', 'PUT');
+        axios.post('/api/gradients/' + this.card.id, bodyFormData).then(function (response) {
+          Vue.set(self.cards, self.activeCardIndex, self.card); // Object.assign(self.activeCard, self.editedCard);
+
+          self.close();
+        })["catch"](function (error) {
+          console.log(error);
+        });
+      }
     },
-    deleteItem: function deleteItem(item) {
+    deleteItem: function deleteItem(card) {
       var _this3 = this;
 
-      var index = this.cards.indexOf(item);
+      var index = this.cards.indexOf(card);
 
       if (confirm('Are you sure you want to delete this item?')) {
         axios["delete"]('/api/gradients/' + this.cards[index].id).then(function (response) {
@@ -38194,7 +38241,9 @@ var render = function() {
                                               attrs: { small: "" },
                                               on: {
                                                 click: function($event) {
-                                                  return _vm.editItem(card)
+                                                  return _vm.showEditDialogue(
+                                                    card
+                                                  )
                                                 }
                                               }
                                             },
@@ -38253,7 +38302,7 @@ var render = function() {
                       on: {
                         click: function($event) {
                           $event.stopPropagation()
-                          _vm.dialog = true
+                          return _vm.showNewDialogue()
                         }
                       }
                     },
@@ -38295,11 +38344,11 @@ var render = function() {
                                       _c("v-text-field", {
                                         attrs: { label: "Name of Gradient" },
                                         model: {
-                                          value: _vm.cards.name,
+                                          value: _vm.card.name,
                                           callback: function($$v) {
-                                            _vm.$set(_vm.cards, "name", $$v)
+                                            _vm.$set(_vm.card, "name", $$v)
                                           },
-                                          expression: "cards.name"
+                                          expression: "card.name"
                                         }
                                       })
                                     ],
@@ -38316,11 +38365,11 @@ var render = function() {
                                           label: "First Color"
                                         },
                                         model: {
-                                          value: _vm.cards.color1,
+                                          value: _vm.card.color1,
                                           callback: function($$v) {
-                                            _vm.$set(_vm.cards, "color1", $$v)
+                                            _vm.$set(_vm.card, "color1", $$v)
                                           },
-                                          expression: "cards.color1"
+                                          expression: "card.color1"
                                         }
                                       })
                                     ],
@@ -38337,11 +38386,11 @@ var render = function() {
                                           label: "Second Color"
                                         },
                                         model: {
-                                          value: _vm.cards.color2,
+                                          value: _vm.card.color2,
                                           callback: function($$v) {
-                                            _vm.$set(_vm.cards, "color2", $$v)
+                                            _vm.$set(_vm.card, "color2", $$v)
                                           },
-                                          expression: "cards.color2"
+                                          expression: "card.color2"
                                         }
                                       })
                                     ],

@@ -35,12 +35,15 @@
                                                 </span>
                                             </div>
                                         </v-col>
+                                        <!-- edit and delete cards -->
                                         <v-col cols="4">
                                             <div class="pt-3">
                                                 <v-icon
                                                     small
                                                     class="mr-2"
-                                                    @click="editItem(card)"
+                                                    @click="
+                                                        showEditDialogue(card)
+                                                    "
                                                 >
                                                     mdi-square-edit-outline
                                                 </v-icon>
@@ -52,17 +55,23 @@
                                                 </v-icon>
                                             </div>
                                         </v-col>
+                                        <!-- *** -->
                                     </v-row>
                                 </v-card>
                             </template>
                         </v-row>
                     </v-card-text>
-                </v-card>                
+                </v-card>
+                <!-- add new entry button -->
                 <div class="text-center py-3">
-                    <v-btn small color="primary" @click.stop="dialog = true"
+                    <v-btn
+                        small
+                        color="primary"
+                        @click.stop="showNewDialogue()"
                         >Add New Gradient</v-btn
                     >
                 </div>
+                <!-- new entry modal -->
                 <v-dialog v-model="dialog" max-width="700">
                     <v-card>
                         <v-form>
@@ -70,14 +79,14 @@
                                 <v-row>
                                     <v-col cols="12" md="4">
                                         <v-text-field
-                                            v-model="cards.name"
+                                            v-model="card.name"
                                             label="Name of Gradient"
                                         ></v-text-field>
                                     </v-col>
 
                                     <v-col cols="12" md="4">
                                         <v-select
-                                            v-model="cards.color1"
+                                            v-model="card.color1"
                                             :items="colors"
                                             label="First Color"
                                         ></v-select>
@@ -85,7 +94,7 @@
 
                                     <v-col cols="12" md="4">
                                         <v-select
-                                            v-model="cards.color2"
+                                            v-model="card.color2"
                                             :items="colors"
                                             label="Second Color"
                                         ></v-select>
@@ -117,6 +126,8 @@ export default {
     data() {
         return {
             dialog: false,
+            card: {id: '-1', name: 'Test Name', color1: '', color2: ''},
+            activeCardIndex: '-1',
             cards: [],
             colors: [
                 'red',
@@ -150,6 +161,22 @@ export default {
         },
     },
     methods: {
+        showNewDialogue() {
+            this.activeCardIndex = -1;
+            this.card.id = -1;
+            this.card.name = '';
+            this.card.color1 = '';
+            this.card.color2 = '';
+            this.dialog = true;
+        },
+        showEditDialogue(editedCard) {
+            this.activeCardIndex = this.cards.indexOf(editedCard);
+            this.card.id = editedCard.id;
+            this.card.name = editedCard.name;
+            this.card.color1 = editedCard.color1;
+            this.card.color2 = editedCard.color2;
+            this.dialog = true;
+        },
         close() {
             this.dialog = false;
         },
@@ -169,18 +196,36 @@ export default {
                 });
         },
         saveToServer() {
-            let bodyFormData = new FormData();
-            bodyFormData.set('name', this.cards.name);
-            bodyFormData.set('color1', this.cards.color1);
-            bodyFormData.set('color2', this.cards.color2);
-            axios
-                .post('/api/gradients', bodyFormData)
-                .then(response => {
-                    this.cards = res.data.gradients.data;
-                })
-                .catch(function(error) {
-                    console.log(error);
-                });
+            let bodyFormData = new FormData();                  
+            bodyFormData.set('name', this.card.name);
+            bodyFormData.set('color1', this.card.color1);
+            bodyFormData.set('color2', this.card.color2);
+            var self = this;
+            // add new card
+            if (this.card.id === -1) {                
+                axios
+                    .post('/api/gradients', bodyFormData)
+                    .then(response => {
+                        this.cards = this.cards.concat(response.data);
+                        self.close();
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+            } else { 
+                // update card
+                bodyFormData.append('_method', 'PUT');
+                axios
+                    .post('/api/gradients/' + this.card.id, bodyFormData)
+                    .then(response => {
+                        Vue.set(self.cards, self.activeCardIndex, self.card);
+                        // Object.assign(self.activeCard, self.editedCard);
+                        self.close();
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+            }            
         },
         deleteItem(card) {
             const index = this.cards.indexOf(card);
