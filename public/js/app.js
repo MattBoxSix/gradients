@@ -2053,7 +2053,11 @@ __webpack_require__.r(__webpack_exports__);
       },
       activeCardIndex: '-1',
       cards: [],
-      sortSelection: '',
+      nextId: 0,
+      currentPage: 0,
+      pageSize: 8,
+      visibleCards: [],
+      sortSelection: 'created_at',
       colors: ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'black', 'grey', 'pink'],
       sortBy: [{
         text: 'Name',
@@ -2075,7 +2079,11 @@ __webpack_require__.r(__webpack_exports__);
       };
     },
     orderedCards: function orderedCards() {
-      return _.orderBy(this.cards, this.sortSelection);
+      var _this = this;
+
+      return _.orderBy(this.cards, [function (card) {
+        return card[_this.sortSelection].toLowerCase();
+      }, ['desc']]);
     }
   },
   created: function created() {
@@ -2110,7 +2118,7 @@ __webpack_require__.r(__webpack_exports__);
       this.dialog = false;
     },
     loadGradients: function loadGradients() {
-      var _this = this;
+      var _this2 = this;
 
       if (axios == null) {
         return;
@@ -2118,14 +2126,14 @@ __webpack_require__.r(__webpack_exports__);
 
       axios.get('/api/gradients').then(function (res) {
         if (res.status === 200) {
-          _this.cards = res.data.gradients;
+          _this2.cards = res.data.gradients;
         }
       })["catch"](function (err) {
         console.log(err);
       });
     },
     saveToServer: function saveToServer() {
-      var _this2 = this;
+      var _this3 = this;
 
       var bodyFormData = new FormData();
       bodyFormData.set('name', this.card.name);
@@ -2135,7 +2143,7 @@ __webpack_require__.r(__webpack_exports__);
 
       if (this.card.id === -1) {
         axios.post('/api/gradients', bodyFormData).then(function (response) {
-          _this2.cards = _this2.cards.concat(response.data);
+          _this3.cards = _this3.cards.concat(response.data);
           self.close();
         })["catch"](function (error) {
           console.log(error);
@@ -2153,13 +2161,13 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     deleteItem: function deleteItem(card) {
-      var _this3 = this;
+      var _this4 = this;
 
       var index = this.cards.indexOf(card);
 
       if (confirm('Are you sure you want to delete this item?')) {
         axios["delete"]('/api/gradients/' + this.cards[index].id).then(function (response) {
-          _this3.cards.splice(index, 1);
+          _this4.cards.splice(index, 1);
         })["catch"](function (error) {
           console.log('Deleting error');
         });

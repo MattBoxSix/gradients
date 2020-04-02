@@ -12,7 +12,7 @@
                                     label="Sort By"
                                     class="py-0"
                                     @change="changeOrder"
-                                ></v-select>                                
+                                ></v-select>
                             </v-col>
                         </v-row>
                     </v-card-title>
@@ -139,7 +139,11 @@ export default {
             card: {id: '-1', name: 'Test Name', color1: '', color2: ''},
             activeCardIndex: '-1',
             cards: [],
-            sortSelection: '',
+            nextId: 0,
+            currentPage: 0,
+            pageSize: 8,
+            visibleCards: [],
+            sortSelection: 'created_at',
             colors: [
                 'red',
                 'green',
@@ -165,7 +169,10 @@ export default {
             return bgImage;
         },
         orderedCards: function() {
-            return _.orderBy(this.cards, this.sortSelection);
+            return _.orderBy(
+                this.cards,
+                [card => card[this.sortSelection].toLowerCase(), ['desc']]                               
+            );
         },
     },
     created() {
