@@ -2031,6 +2031,16 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2043,7 +2053,18 @@ __webpack_require__.r(__webpack_exports__);
       },
       activeCardIndex: '-1',
       cards: [],
-      colors: ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'black', 'grey', 'pink']
+      sortSelection: '',
+      colors: ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'black', 'grey', 'pink'],
+      sortBy: [{
+        text: 'Name',
+        value: 'name'
+      }, {
+        text: 'Color one',
+        value: 'color1'
+      }, {
+        text: 'Color two',
+        value: 'color2'
+      }]
     };
   },
   computed: {
@@ -2054,7 +2075,7 @@ __webpack_require__.r(__webpack_exports__);
       };
     },
     orderedCards: function orderedCards() {
-      return _.orderBy(this.cards, 'color1');
+      return _.orderBy(this.cards, this.sortSelection);
     }
   },
   created: function created() {
@@ -2066,6 +2087,9 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   methods: {
+    changeOrder: function changeOrder() {
+      return this.orderedCards;
+    },
     showNewDialogue: function showNewDialogue() {
       this.activeCardIndex = -1;
       this.card.id = -1;
@@ -38177,6 +38201,39 @@ var render = function() {
                 { staticClass: "cardColor d-inline-block mx-auto" },
                 [
                   _c(
+                    "v-card-title",
+                    { staticClass: "text-right py-0" },
+                    [
+                      _c(
+                        "v-row",
+                        [
+                          _c(
+                            "v-col",
+                            { staticClass: "pb-0", attrs: { cols: "5" } },
+                            [
+                              _c("v-select", {
+                                staticClass: "py-0",
+                                attrs: { items: _vm.sortBy, label: "Sort By" },
+                                on: { change: _vm.changeOrder },
+                                model: {
+                                  value: _vm.sortSelection,
+                                  callback: function($$v) {
+                                    _vm.sortSelection = $$v
+                                  },
+                                  expression: "sortSelection"
+                                }
+                              })
+                            ],
+                            1
+                          )
+                        ],
+                        1
+                      )
+                    ],
+                    1
+                  ),
+                  _vm._v(" "),
+                  _c(
                     "v-card-text",
                     [
                       _c(
@@ -38192,7 +38249,7 @@ var render = function() {
                               },
                               [
                                 _c("v-card-text", {
-                                  staticStyle: { height: "150px" },
+                                  staticStyle: { height: "120px" },
                                   style: {
                                     "background-image": _vm.backgroundImage(
                                       card.color1,
@@ -38206,7 +38263,7 @@ var render = function() {
                                   "v-row",
                                   [
                                     _c("v-col", { attrs: { cols: "8" } }, [
-                                      _c("div", { staticClass: "px-2 pt-2" }, [
+                                      _c("div", { staticClass: "px-2" }, [
                                         _c("span", [
                                           _vm._v(
                                             "\n                                                " +
@@ -38232,7 +38289,6 @@ var render = function() {
                                     _c("v-col", { attrs: { cols: "4" } }, [
                                       _c(
                                         "div",
-                                        { staticClass: "pt-3" },
                                         [
                                           _c(
                                             "v-icon",
@@ -38298,7 +38354,7 @@ var render = function() {
                   _c(
                     "v-btn",
                     {
-                      attrs: { small: "", color: "primary" },
+                      attrs: { large: "", color: "primary" },
                       on: {
                         click: function($event) {
                           $event.stopPropagation()

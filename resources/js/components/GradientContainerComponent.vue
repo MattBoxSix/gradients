@@ -3,6 +3,19 @@
         <v-row align="center" justify="center">
             <v-col cols md="11" class="pt-5">
                 <v-card class="cardColor d-inline-block mx-auto">
+                    <v-card-title class="text-right py-0">
+                        <v-row>
+                            <v-col cols="5" class="pb-0">
+                                <v-select
+                                    v-model="sortSelection"
+                                    :items="sortBy"
+                                    label="Sort By"
+                                    class="py-0"
+                                    @change="changeOrder"
+                                ></v-select>                                
+                            </v-col>
+                        </v-row>
+                    </v-card-title>
                     <v-card-text>
                         <v-row>
                             <template>
@@ -13,7 +26,7 @@
                                     flat
                                 >
                                     <v-card-text
-                                        style="height: 150px"
+                                        style="height: 120px"
                                         :style="{
                                             'background-image': backgroundImage(
                                                 card.color1,
@@ -24,7 +37,7 @@
                                     ></v-card-text>
                                     <v-row>
                                         <v-col cols="8">
-                                            <div class="px-2 pt-2">
+                                            <div class="px-2">
                                                 <span>
                                                     {{ card.name }}
                                                 </span>
@@ -37,7 +50,7 @@
                                         </v-col>
                                         <!-- edit and delete cards -->
                                         <v-col cols="4">
-                                            <div class="pt-3">
+                                            <div>
                                                 <v-icon
                                                     small
                                                     class="mr-2"
@@ -64,10 +77,7 @@
                 </v-card>
                 <!-- add new entry button -->
                 <div class="text-center py-3">
-                    <v-btn
-                        small
-                        color="primary"
-                        @click.stop="showNewDialogue()"
+                    <v-btn large color="primary" @click.stop="showNewDialogue()"
                         >Add New Gradient</v-btn
                     >
                 </div>
@@ -129,6 +139,7 @@ export default {
             card: {id: '-1', name: 'Test Name', color1: '', color2: ''},
             activeCardIndex: '-1',
             cards: [],
+            sortSelection: '',
             colors: [
                 'red',
                 'green',
@@ -140,6 +151,11 @@ export default {
                 'grey',
                 'pink',
             ],
+            sortBy: [
+                {text: 'Name', value: 'name'},
+                {text: 'Color one', value: 'color1'},
+                {text: 'Color two', value: 'color2'},
+            ],
         };
     },
     computed: {
@@ -149,7 +165,7 @@ export default {
             return bgImage;
         },
         orderedCards: function() {
-            return _.orderBy(this.cards, 'color1');
+            return _.orderBy(this.cards, this.sortSelection);
         },
     },
     created() {
@@ -161,6 +177,9 @@ export default {
         },
     },
     methods: {
+        changeOrder() {
+            return this.orderedCards;
+        },
         showNewDialogue() {
             this.activeCardIndex = -1;
             this.card.id = -1;
@@ -196,13 +215,13 @@ export default {
                 });
         },
         saveToServer() {
-            let bodyFormData = new FormData();                  
+            let bodyFormData = new FormData();
             bodyFormData.set('name', this.card.name);
             bodyFormData.set('color1', this.card.color1);
             bodyFormData.set('color2', this.card.color2);
             var self = this;
             // add new card
-            if (this.card.id === -1) {                
+            if (this.card.id === -1) {
                 axios
                     .post('/api/gradients', bodyFormData)
                     .then(response => {
@@ -212,7 +231,7 @@ export default {
                     .catch(function(error) {
                         console.log(error);
                     });
-            } else { 
+            } else {
                 // update card
                 bodyFormData.append('_method', 'PUT');
                 axios
@@ -225,7 +244,7 @@ export default {
                     .catch(function(error) {
                         console.log(error);
                     });
-            }            
+            }
         },
         deleteItem(card) {
             const index = this.cards.indexOf(card);
