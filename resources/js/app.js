@@ -7,9 +7,11 @@
 require('./bootstrap');
 
 window.Vue = require('vue');
+import VueTheMask from 'vue-the-mask';
 
 import Vuetify from 'vuetify';
 Vue.use(Vuetify);
+Vue.use(VueTheMask);
 
 /**
  * The following block of code may be used to automatically register your

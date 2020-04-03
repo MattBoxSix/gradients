@@ -2041,22 +2041,117 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
+      color: '#1976D2FF',
+      mask: '!#XXXXXXXX',
+      menu1: false,
+      menu2: false,
       dialog: false,
       card: {
         id: '-1',
         name: 'Test Name',
-        color1: '',
-        color2: ''
+        color1: '#1976D2FF',
+        color2: '#1976D2FF'
       },
       activeCardIndex: '-1',
       cards: [],
-      nextId: 0,
-      currentPage: 0,
-      pageSize: 8,
-      visibleCards: [],
+      currentPage: 1,
+      lastPage: 2,
       sortSelection: 'created_at',
       colors: ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'black', 'grey', 'pink'],
       sortBy: [{
@@ -2078,16 +2173,49 @@ __webpack_require__.r(__webpack_exports__);
         return bgImage;
       };
     },
-    orderedCards: function orderedCards() {
-      var _this = this;
+    prevPage: function prevPage() {
+      if (this.currentPage <= 1) {
+        return 1;
+      }
 
-      return _.orderBy(this.cards, [function (card) {
-        return card[_this.sortSelection].toLowerCase();
-      }, ['desc']]);
+      return this.currentPage - 1;
+    },
+    nextPage: function nextPage() {
+      if (this.currentPage >= this.lastPage) {
+        return lastPage;
+      }
+
+      return this.currentPage + 1;
+    },
+    swatchStyle1: function swatchStyle1() {
+      var color = this.card.color1;
+      return {
+        backgroundColor: color,
+        cursor: 'pointer',
+        height: '30px',
+        width: '30px',
+        borderRadius: '4px',
+        borderStyle: 'solid',
+        borderWidth: 'thin',
+        transition: 'border-radius 200ms ease-in-out'
+      };
+    },
+    swatchStyle2: function swatchStyle2() {
+      var color = this.card.color2;
+      return {
+        backgroundColor: color,
+        cursor: 'pointer',
+        height: '30px',
+        width: '30px',
+        borderRadius: '4px',
+        borderStyle: 'solid',
+        borderWidth: 'thin',
+        transition: 'border-radius 200ms ease-in-out'
+      };
     }
   },
   created: function created() {
-    this.loadGradients();
+    this.loadGradients(1);
   },
   watch: {
     dialog: function dialog(val) {
@@ -2095,15 +2223,12 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   methods: {
-    changeOrder: function changeOrder() {
-      return this.orderedCards;
-    },
     showNewDialogue: function showNewDialogue() {
       this.activeCardIndex = -1;
       this.card.id = -1;
       this.card.name = '';
-      this.card.color1 = '';
-      this.card.color2 = '';
+      this.card.color1 = '#FF0000FF';
+      this.card.color2 = '#FF0000FF';
       this.dialog = true;
     },
     showEditDialogue: function showEditDialogue(editedCard) {
@@ -2117,23 +2242,25 @@ __webpack_require__.r(__webpack_exports__);
     close: function close() {
       this.dialog = false;
     },
-    loadGradients: function loadGradients() {
-      var _this2 = this;
+    loadGradients: function loadGradients(pageNumber) {
+      var _this = this;
 
       if (axios == null) {
         return;
       }
 
-      axios.get('/api/gradients').then(function (res) {
+      axios.get('/api/gradients?page=' + pageNumber + '&sort=' + this.sortSelection).then(function (res) {
         if (res.status === 200) {
-          _this2.cards = res.data.gradients;
+          _this.cards = res.data.gradients.data;
+          _this.lastPage = res.data.gradients.last_page;
+          _this.currentPage = res.data.gradients.current_page;
         }
       })["catch"](function (err) {
         console.log(err);
       });
     },
     saveToServer: function saveToServer() {
-      var _this3 = this;
+      var _this2 = this;
 
       var bodyFormData = new FormData();
       bodyFormData.set('name', this.card.name);
@@ -2143,7 +2270,12 @@ __webpack_require__.r(__webpack_exports__);
 
       if (this.card.id === -1) {
         axios.post('/api/gradients', bodyFormData).then(function (response) {
-          _this3.cards = _this3.cards.concat(response.data);
+          if (_this2.cards.length >= 8) {
+            _this2.cards.shift();
+          }
+
+          _this2.cards = _this2.cards.concat(response.data.gradient);
+          _this2.lastPage = response.data.lastPage;
           self.close();
         })["catch"](function (error) {
           console.log(error);
@@ -2152,8 +2284,7 @@ __webpack_require__.r(__webpack_exports__);
         // update card
         bodyFormData.append('_method', 'PUT');
         axios.post('/api/gradients/' + this.card.id, bodyFormData).then(function (response) {
-          Vue.set(self.cards, self.activeCardIndex, self.card); // Object.assign(self.activeCard, self.editedCard);
-
+          Vue.set(self.cards, self.activeCardIndex, self.card);
           self.close();
         })["catch"](function (error) {
           console.log(error);
@@ -2161,13 +2292,16 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     deleteItem: function deleteItem(card) {
-      var _this4 = this;
+      var _this3 = this;
 
+      var currentPageNumber = this.currentPage;
       var index = this.cards.indexOf(card);
 
       if (confirm('Are you sure you want to delete this item?')) {
         axios["delete"]('/api/gradients/' + this.cards[index].id).then(function (response) {
-          _this4.cards.splice(index, 1);
+          _this3.cards.splice(index, 1);
+
+          _this3.loadGradients(currentPageNumber);
         })["catch"](function (error) {
           console.log('Deleting error');
         });
@@ -38202,11 +38336,11 @@ var render = function() {
         [
           _c(
             "v-col",
-            { staticClass: "pt-5", attrs: { cols: "", md: "11" } },
+            { staticClass: "pt-5", attrs: { cols: "11" } },
             [
               _c(
                 "v-card",
-                { staticClass: "cardColor d-inline-block mx-auto" },
+                { staticClass: "cardColor" },
                 [
                   _c(
                     "v-card-title",
@@ -38222,7 +38356,7 @@ var render = function() {
                               _c("v-select", {
                                 staticClass: "py-0",
                                 attrs: { items: _vm.sortBy, label: "Sort By" },
-                                on: { change: _vm.changeOrder },
+                                on: { change: _vm.loadGradients },
                                 model: {
                                   value: _vm.sortSelection,
                                   callback: function($$v) {
@@ -38246,107 +38380,144 @@ var render = function() {
                     [
                       _c(
                         "v-row",
-                        [
-                          _vm._l(_vm.orderedCards, function(card) {
-                            return _c(
-                              "v-card",
-                              {
-                                key: card.id,
-                                staticClass: "col-6 col-lg-3 pa-0 card",
+                        _vm._l(_vm.cards, function(card) {
+                          return _c(
+                            "v-card",
+                            {
+                              key: card.id,
+                              staticClass: "col-3 col-md-3 col-lg-3 pa-0 card",
+                              attrs: { flat: "" }
+                            },
+                            [
+                              _c("v-card-text", {
+                                staticStyle: { height: "120px" },
+                                style: {
+                                  "background-image": _vm.backgroundImage(
+                                    card.color1,
+                                    card.color2
+                                  )
+                                },
                                 attrs: { flat: "" }
-                              },
-                              [
-                                _c("v-card-text", {
-                                  staticStyle: { height: "120px" },
-                                  style: {
-                                    "background-image": _vm.backgroundImage(
-                                      card.color1,
-                                      card.color2
-                                    )
-                                  },
-                                  attrs: { flat: "" }
-                                }),
-                                _vm._v(" "),
-                                _c(
-                                  "v-row",
-                                  [
-                                    _c("v-col", { attrs: { cols: "8" } }, [
-                                      _c("div", { staticClass: "px-2" }, [
-                                        _c("span", [
-                                          _vm._v(
-                                            "\n                                                " +
-                                              _vm._s(card.name) +
-                                              "\n                                            "
-                                          )
-                                        ]),
-                                        _vm._v(" "),
-                                        _c("br"),
-                                        _vm._v(" "),
-                                        _c("span", [
-                                          _vm._v(
-                                            "\n                                                " +
-                                              _vm._s(card.color1) +
-                                              " →\n                                                " +
-                                              _vm._s(card.color2) +
-                                              "\n                                            "
-                                          )
-                                        ])
+                              }),
+                              _vm._v(" "),
+                              _c(
+                                "v-row",
+                                [
+                                  _c("v-col", { attrs: { cols: "8" } }, [
+                                    _c("div", { staticClass: "px-2" }, [
+                                      _c("span", [
+                                        _vm._v(
+                                          "\n                                            " +
+                                            _vm._s(card.name) +
+                                            "\n                                        "
+                                        )
+                                      ]),
+                                      _vm._v(" "),
+                                      _c("br"),
+                                      _vm._v(" "),
+                                      _c("span", [
+                                        _vm._v(
+                                          "\n                                            " +
+                                            _vm._s(card.color1) +
+                                            " →\n                                            " +
+                                            _vm._s(card.color2) +
+                                            "\n                                        "
+                                        )
                                       ])
-                                    ]),
-                                    _vm._v(" "),
-                                    _c("v-col", { attrs: { cols: "4" } }, [
-                                      _c(
-                                        "div",
-                                        [
-                                          _c(
-                                            "v-icon",
-                                            {
-                                              staticClass: "mr-2",
-                                              attrs: { small: "" },
-                                              on: {
-                                                click: function($event) {
-                                                  return _vm.showEditDialogue(
-                                                    card
-                                                  )
-                                                }
-                                              }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                                mdi-square-edit-outline\n                                            "
-                                              )
-                                            ]
-                                          ),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-icon",
-                                            {
-                                              attrs: { small: "" },
-                                              on: {
-                                                click: function($event) {
-                                                  return _vm.deleteItem(card)
-                                                }
-                                              }
-                                            },
-                                            [
-                                              _vm._v(
-                                                "\n                                                mdi-delete\n                                            "
-                                              )
-                                            ]
-                                          )
-                                        ],
-                                        1
-                                      )
                                     ])
-                                  ],
-                                  1
-                                )
-                              ],
-                              1
-                            )
-                          })
+                                  ]),
+                                  _vm._v(" "),
+                                  _c("v-col", { attrs: { cols: "4" } }, [
+                                    _c(
+                                      "div",
+                                      [
+                                        _c(
+                                          "v-icon",
+                                          {
+                                            staticClass: "mr-2",
+                                            attrs: { small: "" },
+                                            on: {
+                                              click: function($event) {
+                                                return _vm.showEditDialogue(
+                                                  card
+                                                )
+                                              }
+                                            }
+                                          },
+                                          [
+                                            _vm._v(
+                                              "\n                                            mdi-square-edit-outline\n                                        "
+                                            )
+                                          ]
+                                        ),
+                                        _vm._v(" "),
+                                        _c(
+                                          "v-icon",
+                                          {
+                                            attrs: { small: "" },
+                                            on: {
+                                              click: function($event) {
+                                                return _vm.deleteItem(card)
+                                              }
+                                            }
+                                          },
+                                          [
+                                            _vm._v(
+                                              "\n                                            mdi-delete\n                                        "
+                                            )
+                                          ]
+                                        )
+                                      ],
+                                      1
+                                    )
+                                  ])
+                                ],
+                                1
+                              )
+                            ],
+                            1
+                          )
+                        }),
+                        1
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "v-row",
+                        { attrs: { align: "center", justify: "center" } },
+                        [
+                          _c(
+                            "v-btn",
+                            {
+                              attrs: { text: "" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.loadGradients(_vm.prevPage)
+                                }
+                              }
+                            },
+                            [_vm._v("Prev")]
+                          ),
+                          _vm._v(
+                            "\n                        Page " +
+                              _vm._s(_vm.currentPage) +
+                              " of " +
+                              _vm._s(_vm.lastPage) +
+                              "\n                        "
+                          ),
+                          _c(
+                            "v-btn",
+                            {
+                              attrs: { text: "" },
+                              on: {
+                                click: function($event) {
+                                  return _vm.loadGradients(_vm.nextPage)
+                                }
+                              }
+                            },
+                            [_vm._v("Next")]
+                          )
                         ],
-                        2
+                        1
                       )
                     ],
                     1
@@ -38406,6 +38577,7 @@ var render = function() {
                                     { attrs: { cols: "12", md: "4" } },
                                     [
                                       _c("v-text-field", {
+                                        staticClass: "ma-0 pa-0",
                                         attrs: { label: "Name of Gradient" },
                                         model: {
                                           value: _vm.card.name,
@@ -38423,11 +38595,112 @@ var render = function() {
                                     "v-col",
                                     { attrs: { cols: "12", md: "4" } },
                                     [
-                                      _c("v-select", {
+                                      _c("v-text-field", {
+                                        directives: [
+                                          {
+                                            name: "mask",
+                                            rawName: "v-mask",
+                                            value: _vm.mask,
+                                            expression: "mask"
+                                          }
+                                        ],
+                                        staticClass: "ma-0 pa-0",
                                         attrs: {
-                                          items: _vm.colors,
-                                          label: "First Color"
+                                          "hide-details": "",
+                                          label: "First Color",
+                                          readonly: ""
                                         },
+                                        scopedSlots: _vm._u([
+                                          {
+                                            key: "append",
+                                            fn: function() {
+                                              return [
+                                                _c(
+                                                  "v-menu",
+                                                  {
+                                                    attrs: {
+                                                      top: "",
+                                                      "nudge-bottom": "105",
+                                                      "nudge-left": "16",
+                                                      "close-on-content-click": false
+                                                    },
+                                                    scopedSlots: _vm._u([
+                                                      {
+                                                        key: "activator",
+                                                        fn: function(ref) {
+                                                          var on = ref.on
+                                                          return [
+                                                            _c(
+                                                              "div",
+                                                              _vm._g(
+                                                                {
+                                                                  style:
+                                                                    _vm.swatchStyle1
+                                                                },
+                                                                on
+                                                              )
+                                                            )
+                                                          ]
+                                                        }
+                                                      }
+                                                    ]),
+                                                    model: {
+                                                      value: _vm.menu1,
+                                                      callback: function($$v) {
+                                                        _vm.menu1 = $$v
+                                                      },
+                                                      expression: "menu1"
+                                                    }
+                                                  },
+                                                  [
+                                                    _vm._v(" "),
+                                                    _c(
+                                                      "v-card",
+                                                      [
+                                                        _c(
+                                                          "v-card-text",
+                                                          {
+                                                            staticClass: "pa-0"
+                                                          },
+                                                          [
+                                                            _c(
+                                                              "v-color-picker",
+                                                              {
+                                                                attrs: {
+                                                                  flat: ""
+                                                                },
+                                                                model: {
+                                                                  value:
+                                                                    _vm.card
+                                                                      .color1,
+                                                                  callback: function(
+                                                                    $$v
+                                                                  ) {
+                                                                    _vm.$set(
+                                                                      _vm.card,
+                                                                      "color1",
+                                                                      $$v
+                                                                    )
+                                                                  },
+                                                                  expression:
+                                                                    "\n                                                                card.color1\n                                                            "
+                                                                }
+                                                              }
+                                                            )
+                                                          ],
+                                                          1
+                                                        )
+                                                      ],
+                                                      1
+                                                    )
+                                                  ],
+                                                  1
+                                                )
+                                              ]
+                                            },
+                                            proxy: true
+                                          }
+                                        ]),
                                         model: {
                                           value: _vm.card.color1,
                                           callback: function($$v) {
@@ -38435,6 +38708,19 @@ var render = function() {
                                           },
                                           expression: "card.color1"
                                         }
+                                      }),
+                                      _vm._v(" "),
+                                      _c("p", [_vm._v("Preview:")]),
+                                      _vm._v(" "),
+                                      _c("v-card-text", {
+                                        staticStyle: { height: "120px" },
+                                        style: {
+                                          "background-image": _vm.backgroundImage(
+                                            _vm.card.color1,
+                                            _vm.card.color2
+                                          )
+                                        },
+                                        attrs: { flat: "" }
                                       })
                                     ],
                                     1
@@ -38444,11 +38730,112 @@ var render = function() {
                                     "v-col",
                                     { attrs: { cols: "12", md: "4" } },
                                     [
-                                      _c("v-select", {
+                                      _c("v-text-field", {
+                                        directives: [
+                                          {
+                                            name: "mask",
+                                            rawName: "v-mask",
+                                            value: _vm.mask,
+                                            expression: "mask"
+                                          }
+                                        ],
+                                        staticClass: "ma-0 pa-0",
                                         attrs: {
-                                          items: _vm.colors,
-                                          label: "Second Color"
+                                          "hide-details": "",
+                                          label: "Second Color",
+                                          readonly: ""
                                         },
+                                        scopedSlots: _vm._u([
+                                          {
+                                            key: "append",
+                                            fn: function() {
+                                              return [
+                                                _c(
+                                                  "v-menu",
+                                                  {
+                                                    attrs: {
+                                                      top: "",
+                                                      "nudge-bottom": "105",
+                                                      "nudge-left": "16",
+                                                      "close-on-content-click": false
+                                                    },
+                                                    scopedSlots: _vm._u([
+                                                      {
+                                                        key: "activator",
+                                                        fn: function(ref) {
+                                                          var on = ref.on
+                                                          return [
+                                                            _c(
+                                                              "div",
+                                                              _vm._g(
+                                                                {
+                                                                  style:
+                                                                    _vm.swatchStyle2
+                                                                },
+                                                                on
+                                                              )
+                                                            )
+                                                          ]
+                                                        }
+                                                      }
+                                                    ]),
+                                                    model: {
+                                                      value: _vm.menu2,
+                                                      callback: function($$v) {
+                                                        _vm.menu2 = $$v
+                                                      },
+                                                      expression: "menu2"
+                                                    }
+                                                  },
+                                                  [
+                                                    _vm._v(" "),
+                                                    _c(
+                                                      "v-card",
+                                                      [
+                                                        _c(
+                                                          "v-card-text",
+                                                          {
+                                                            staticClass: "pa-0"
+                                                          },
+                                                          [
+                                                            _c(
+                                                              "v-color-picker",
+                                                              {
+                                                                attrs: {
+                                                                  flat: ""
+                                                                },
+                                                                model: {
+                                                                  value:
+                                                                    _vm.card
+                                                                      .color2,
+                                                                  callback: function(
+                                                                    $$v
+                                                                  ) {
+                                                                    _vm.$set(
+                                                                      _vm.card,
+                                                                      "color2",
+                                                                      $$v
+                                                                    )
+                                                                  },
+                                                                  expression:
+                                                                    "\n                                                                card.color2\n                                                            "
+                                                                }
+                                                              }
+                                                            )
+                                                          ],
+                                                          1
+                                                        )
+                                                      ],
+                                                      1
+                                                    )
+                                                  ],
+                                                  1
+                                                )
+                                              ]
+                                            },
+                                            proxy: true
+                                          }
+                                        ]),
                                         model: {
                                           value: _vm.card.color2,
                                           callback: function($$v) {
@@ -38622,6 +39009,17 @@ function normalizeComponent (
   }
 }
 
+
+/***/ }),
+
+/***/ "./node_modules/vue-the-mask/dist/vue-the-mask.js":
+/*!********************************************************!*\
+  !*** ./node_modules/vue-the-mask/dist/vue-the-mask.js ***!
+  \********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+(function(e,t){ true?module.exports=t():undefined})(this,function(){return function(e){function t(r){if(n[r])return n[r].exports;var a=n[r]={i:r,l:!1,exports:{}};return e[r].call(a.exports,a,a.exports,t),a.l=!0,a.exports}var n={};return t.m=e,t.c=n,t.i=function(e){return e},t.d=function(e,n,r){t.o(e,n)||Object.defineProperty(e,n,{configurable:!1,enumerable:!0,get:r})},t.n=function(e){var n=e&&e.__esModule?function(){return e.default}:function(){return e};return t.d(n,"a",n),n},t.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},t.p=".",t(t.s=10)}([function(e,t){e.exports={"#":{pattern:/\d/},X:{pattern:/[0-9a-zA-Z]/},S:{pattern:/[a-zA-Z]/},A:{pattern:/[a-zA-Z]/,transform:function(e){return e.toLocaleUpperCase()}},a:{pattern:/[a-zA-Z]/,transform:function(e){return e.toLocaleLowerCase()}},"!":{escape:!0}}},function(e,t,n){"use strict";function r(e){var t=document.createEvent("Event");return t.initEvent(e,!0,!0),t}var a=n(2),o=n(0),i=n.n(o);t.a=function(e,t){var o=t.value;if((Array.isArray(o)||"string"==typeof o)&&(o={mask:o,tokens:i.a}),"INPUT"!==e.tagName.toLocaleUpperCase()){var u=e.getElementsByTagName("input");if(1!==u.length)throw new Error("v-mask directive requires 1 input, found "+u.length);e=u[0]}e.oninput=function(t){if(t.isTrusted){var i=e.selectionEnd,u=e.value[i-1];for(e.value=n.i(a.a)(e.value,o.mask,!0,o.tokens);i<e.value.length&&e.value.charAt(i-1)!==u;)i++;e===document.activeElement&&(e.setSelectionRange(i,i),setTimeout(function(){e.setSelectionRange(i,i)},0)),e.dispatchEvent(r("input"))}};var s=n.i(a.a)(e.value,o.mask,!0,o.tokens);s!==e.value&&(e.value=s,e.dispatchEvent(r("input")))}},function(e,t,n){"use strict";var r=n(6),a=n(5);t.a=function(e,t){var o=!(arguments.length>2&&void 0!==arguments[2])||arguments[2],i=arguments[3];return Array.isArray(t)?n.i(a.a)(r.a,t,i)(e,t,o,i):n.i(r.a)(e,t,o,i)}},function(e,t,n){"use strict";function r(e){e.component(s.a.name,s.a),e.directive("mask",i.a)}Object.defineProperty(t,"__esModule",{value:!0});var a=n(0),o=n.n(a),i=n(1),u=n(7),s=n.n(u);n.d(t,"TheMask",function(){return s.a}),n.d(t,"mask",function(){return i.a}),n.d(t,"tokens",function(){return o.a}),n.d(t,"version",function(){return c});var c="0.11.1";t.default=r,"undefined"!=typeof window&&window.Vue&&window.Vue.use(r)},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=n(1),a=n(0),o=n.n(a),i=n(2);t.default={name:"TheMask",props:{value:[String,Number],mask:{type:[String,Array],required:!0},masked:{type:Boolean,default:!1},tokens:{type:Object,default:function(){return o.a}}},directives:{mask:r.a},data:function(){return{lastValue:null,display:this.value}},watch:{value:function(e){e!==this.lastValue&&(this.display=e)},masked:function(){this.refresh(this.display)}},computed:{config:function(){return{mask:this.mask,tokens:this.tokens,masked:this.masked}}},methods:{onInput:function(e){e.isTrusted||this.refresh(e.target.value)},refresh:function(e){this.display=e;var e=n.i(i.a)(e,this.mask,this.masked,this.tokens);e!==this.lastValue&&(this.lastValue=e,this.$emit("input",e))}}}},function(e,t,n){"use strict";function r(e,t,n){return t=t.sort(function(e,t){return e.length-t.length}),function(r,a){for(var o=!(arguments.length>2&&void 0!==arguments[2])||arguments[2],i=0;i<t.length;){var u=t[i];i++;var s=t[i];if(!(s&&e(r,s,!0,n).length>u.length))return e(r,u,o,n)}return""}}t.a=r},function(e,t,n){"use strict";function r(e,t){var n=!(arguments.length>2&&void 0!==arguments[2])||arguments[2],r=arguments[3];e=e||"",t=t||"";for(var a=0,o=0,i="";a<t.length&&o<e.length;){var u=t[a],s=r[u],c=e[o];s&&!s.escape?(s.pattern.test(c)&&(i+=s.transform?s.transform(c):c,a++),o++):(s&&s.escape&&(a++,u=t[a]),n&&(i+=u),c===u&&o++,a++)}for(var f="";a<t.length&&n;){var u=t[a];if(r[u]){f="";break}f+=u,a++}return i+f}t.a=r},function(e,t,n){var r=n(8)(n(4),n(9),null,null);e.exports=r.exports},function(e,t){e.exports=function(e,t,n,r){var a,o=e=e||{},i=typeof e.default;"object"!==i&&"function"!==i||(a=e,o=e.default);var u="function"==typeof o?o.options:o;if(t&&(u.render=t.render,u.staticRenderFns=t.staticRenderFns),n&&(u._scopeId=n),r){var s=u.computed||(u.computed={});Object.keys(r).forEach(function(e){var t=r[e];s[e]=function(){return t}})}return{esModule:a,exports:o,options:u}}},function(e,t){e.exports={render:function(){var e=this,t=e.$createElement;return(e._self._c||t)("input",{directives:[{name:"mask",rawName:"v-mask",value:e.config,expression:"config"}],attrs:{type:"text"},domProps:{value:e.display},on:{input:e.onInput}})},staticRenderFns:[]}},function(e,t,n){e.exports=n(3)}])});
 
 /***/ }),
 
@@ -92188,8 +92586,10 @@ module.exports = function(module) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var vuetify__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vuetify */ "./node_modules/vuetify/dist/vuetify.js");
-/* harmony import */ var vuetify__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vuetify__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var vue_the_mask__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue-the-mask */ "./node_modules/vue-the-mask/dist/vue-the-mask.js");
+/* harmony import */ var vue_the_mask__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue_the_mask__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var vuetify__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vuetify */ "./node_modules/vuetify/dist/vuetify.js");
+/* harmony import */ var vuetify__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(vuetify__WEBPACK_IMPORTED_MODULE_1__);
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes Vue and other libraries. It is a great starting point when
@@ -92199,7 +92599,9 @@ __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
 
 window.Vue = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
 
-Vue.use(vuetify__WEBPACK_IMPORTED_MODULE_0___default.a);
+
+Vue.use(vuetify__WEBPACK_IMPORTED_MODULE_1___default.a);
+Vue.use(vue_the_mask__WEBPACK_IMPORTED_MODULE_0___default.a);
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
@@ -92219,7 +92621,7 @@ Vue.component('gradient-container-component', __webpack_require__(/*! ./componen
 
 var app = new Vue({
   el: '#app',
-  vuetify: new vuetify__WEBPACK_IMPORTED_MODULE_0___default.a()
+  vuetify: new vuetify__WEBPACK_IMPORTED_MODULE_1___default.a()
 });
 
 /***/ }),
