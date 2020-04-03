@@ -7,7 +7,7 @@ http://gradients.boxsix.co.uk/
 <ul>
     <li>Download files or clone to desktop</li>
     <li>Nagivate to download location and run NPM install</li>
-    <li>create database</li>
+    <li>Create database</li>
     <li>Create a .env file and input db name</li>
     <li>Run php artisan migrate to run database schema</li>
 </ul>
