@@ -26,6 +26,6 @@
     },
     "dependencies": {
         "vue-the-mask": "^0.11.1",
-        "vuetify": "^2.2.19"
+        "vuetify": "^2.6.10"
     }
 }
